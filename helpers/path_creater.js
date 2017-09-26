@@ -1,6 +1,5 @@
 const fs = require('fs');
 
-
 function getLogPath(client, path){
     if (!fs.existsSync(path + `\\log_dir\\`)){
         fs.mkdirSync(path + `\\log_dir\\`);

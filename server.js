@@ -9,12 +9,15 @@ const port = 8124;
 let qa = readJson();
 
 const Incoming = {
+    'NONE': (client, pathToLog) => {},
     'QA': (client, pathToLog) => {
         fs.writeFileSync(pathToLog, '');
         LogQA(pathToLog, `Client with id ${client.id} connected`);
+        client.current_state = modes['QA'];
         client.write('ACK');
     },
     'FILES': (client, pathToLog) => {
+        client.current_state = modes['FILES'];
         client.write('ACK');
     },
     'DEC': (client, pathToLog) => {
@@ -22,17 +25,28 @@ const Incoming = {
     },
 };
 
+const modes = {
+    'NONE': 0,
+    'QA': 1,
+    'FILES': 2,
+}
+
 const server = net.createServer((client) => {
     client.id = uid();
+    client.current_state = modes['NONE'];
     client.setEncoding('utf8');
     const pathToLog = logOut.getLogPath(client, fs.realpathSync(''));
 
     client.on('data', (data) => {
         if(data in Incoming){
+            client.current_state = modes['NONE'];
             Incoming[data](client, pathToLog);
         }
-        else if(sh.findQuestion(data, qa)){
+        else if(client.current_state === modes['QA']){
             sendAnswer(pathToLog, client, data, qa);
+        }
+        else if(client.current_state === modes['FILES']){
+            
         }
         else{
             console.log('Unknown command');

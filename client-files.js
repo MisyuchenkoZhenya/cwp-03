@@ -40,5 +40,5 @@ function createDialog(client, dirs) {
     if(dirs.length !== 0){
         
     }
-    client.destroy();
+    client.write('DEC');
 }
