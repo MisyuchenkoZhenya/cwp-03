@@ -1,4 +1,5 @@
 const fs = require('fs');
+const path = require('path');
 
 function getDirsFromArgv(dirs){
     if(dirs.length === 0){
@@ -23,5 +24,28 @@ function checkDirsCorrect(dirs){
     }
 }
 
+function readFilePaths(dirs){
+    let files = [];
+    if(dirs.length !== 0){
+        dirs.forEach((directory) => {
+            getDirectoryPaths(directory, files);
+        });
+    }
+    return files;
+}
+
+function getDirectoryPaths(directory, files){
+    fs.readdirSync(directory).forEach((object) => {
+        let filePath = path.normalize(directory + '\\' + object);
+        if (fs.statSync(filePath).isFile()) {
+            files.push(filePath);
+        }
+        else {
+            getDirectoryPaths(filePath, files);
+        }
+    });
+}
+
 module.exports.getDirsFromArgv = getDirsFromArgv;
 module.exports.checkDirsCorrect = checkDirsCorrect;
+module.exports.readFilePaths = readFilePaths;

@@ -1,6 +1,7 @@
 const net = require('net');
 const fs = require('fs');
-const cf_h = require('./helpers/client-files_helper')
+const path = require('path');
+const cf_h = require('./helpers/client-files_helper');
 const port = 8124;
 
 const client = new net.Socket();
@@ -12,6 +13,10 @@ const Incoming = {
         console.log('Connected');
         dirs = cf_h.getDirsFromArgv(process.argv.slice(2));
         createDialog(client, dirs);
+    },
+
+    'NEXT': () => {
+        sendFileToServer();
     },
 
     'DEC': () => {
@@ -37,8 +42,14 @@ client.on('close', () => {
 });
 
 function createDialog(client, dirs) {
-    if(dirs.length !== 0){
-        
-    }
+    files = cf_h.readFilePaths(dirs);
+    sendFileToServer();
+    console.log(files);
     client.write('DEC');
+}
+
+function sendFileToServer(){
+    if(files.length !== 0){
+
+    }
 }

@@ -10,16 +10,19 @@ let qa = readJson();
 
 const Incoming = {
     'NONE': (client, pathToLog) => {},
+
     'QA': (client, pathToLog) => {
         fs.writeFileSync(pathToLog, '');
         LogQA(pathToLog, `Client with id ${client.id} connected`);
         client.current_state = modes['QA'];
         client.write('ACK');
     },
+
     'FILES': (client, pathToLog) => {
         client.current_state = modes['FILES'];
         client.write('ACK');
     },
+
     'DEC': (client, pathToLog) => {
         client.write('DEC');
     },
@@ -65,12 +68,14 @@ server.listen({host: '127.0.0.1', port: port, exclusive: true},  () => {
 
 function LogQA(pathToLog, message) {
     date = new Date();
-    fs.appendFile(pathToLog, date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds() +
-                        ' - ' + message + '\n', (err) => {
-        if(err){
-            console.err(err.toString());
-        }
-    });
+    if (fs.existsSync(pathToLog)){
+        fs.appendFile(pathToLog, date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds() +
+                            ' - ' + message + '\n', (err) => {
+            if(err){
+                console.err(err.toString());
+            }
+        });
+    }
 }
 
 function readJson(){
