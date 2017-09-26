@@ -4,7 +4,7 @@ const cf_h = require('./helpers/client-files_helper')
 const port = 8124;
 
 const client = new net.Socket();
-let dirs;
+let dirs, files = [];
 client.setEncoding('utf8');
 
 const Incoming = {
@@ -38,7 +38,6 @@ client.on('close', () => {
 
 function createDialog(client, dirs) {
     if(dirs.length !== 0){
-
         
     }
     client.destroy();

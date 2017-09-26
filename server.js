@@ -10,7 +10,8 @@ let qa = readJson();
 
 const Incoming = {
     'QA': (client, pathToLog) => {
-        LOG(pathToLog, `Client with id ${client.id} connected`);
+        fs.writeFileSync(pathToLog, '');
+        LogQA(pathToLog, `Client with id ${client.id} connected`);
         client.write('ACK');
     },
     'FILES': (client, pathToLog) => {
@@ -25,7 +26,6 @@ const server = net.createServer((client) => {
     client.id = uid();
     client.setEncoding('utf8');
     const pathToLog = logOut.getLogPath(client, fs.realpathSync(''));
-    fs.writeFileSync(pathToLog, '');
 
     client.on('data', (data) => {
         if(data in Incoming){
@@ -41,7 +41,7 @@ const server = net.createServer((client) => {
     });
 
     client.on('end', () => {
-        LOG(pathToLog, `Client disconnected`)
+        LogQA(pathToLog, `Client disconnected`)
     });
 });
 
@@ -49,7 +49,7 @@ server.listen({host: '127.0.0.1', port: port, exclusive: true},  () => {
     console.log(`Server listening on localhost:${port}`);
 });
 
-function LOG(pathToLog, message) {
+function LogQA(pathToLog, message) {
     date = new Date();
     fs.appendFile(pathToLog, date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds() +
                         ' - ' + message + '\n', (err) => {
@@ -70,6 +70,6 @@ function sendAnswer(pathToLog, client, question, qa){
     const rand = Math.floor(Math.random() * (qa.length));
     answer = rand % 2 === 0 ? sh.getAnswer(question, qa) : qa[rand].a;
     
-    LOG(pathToLog, `Qestion: ${question}` + '\n\t\t' + `Answer: ${answer}`);
+    LogQA(pathToLog, `Qestion: ${question}` + '\n\t\t' + `Answer: ${answer}`);
     client.write(answer);
 }
