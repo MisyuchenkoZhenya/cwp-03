@@ -7,27 +7,38 @@ const logOut = require('./helpers/path_creater');
 const sh = require('./helpers/server_helper');
 const port = 8124;
 const defaultPath = process.env.DEFAULT_PATH = fs.realpathSync('') + '\\clientFiles\\';
+const maxCountOfClients = process.env.MAX_COUNT_OF_CLIENTS = 2;
 const IP = '127.0.0.1';
 
 let qa = readJson();
+let currentClientsCount = 0;
+let clientsQueue = [];
 
 const Incoming = {
-    'NONE': (client, pathToLog) => {},
+    'NONE': (client) => {},
 
-    'QA': (client, pathToLog) => {
-        fs.writeFileSync(pathToLog, '');
-        LogQA(pathToLog, `Client with id ${client.id} connected`);
+    'QA': (client) => {
+        fs.writeFileSync(client.pathToLog, '');
+        LogQA(client.pathToLog, `Client with id ${client.id} connected`);
         client.current_state = modes['QA'];
         client.write('ACK');
     },
 
-    'FILES': (client, pathToLog) => {
-        sh.checkFileDirectory(defaultPath);
-        client.current_state = modes['FILES'];
-        client.write('ACK');
+    'FILES': (client) => {
+        if(currentClientsCount <= maxCountOfClients){
+            currentClientsCount++;
+            sh.checkFileDirectory(defaultPath);
+            sh.checkFileDirectory(defaultPath + `\\${client.id}\\`);
+            client.current_state = modes['FILES'];
+            client.write('ACK');
+        }
+        else{
+            clientsQueue.push(client);
+        }
     },
 
-    'DEC': (client, pathToLog) => {
+    'DEC': (client) => {
+        if(client.current_state === modes['FILES']) currentClientsCount--;
         client.write('DEC');
     },
 };
@@ -42,18 +53,18 @@ const server = net.createServer((client) => {
     client.id = uid();
     client.current_state = modes['NONE'];
     client.setEncoding('utf8');
-    const pathToLog = logOut.getLogPath(client, fs.realpathSync(''));
+    client.pathToLog = logOut.getLogPath(client, fs.realpathSync(''));
 
     client.on('data', (data) => {
         if(data in Incoming){
             client.current_state = modes['NONE'];
-            Incoming[data](client, pathToLog);
+            Incoming[data](client);
         }
         else if(client.current_state === modes['QA']){
-            sendAnswer(pathToLog, client, data, qa);
+            sendAnswer(client.pathToLog, client, data, qa);
         }
         else if(client.current_state === modes['FILES']){
-            sh.createNewFile(client, data, defaultPath);
+            sh.createNewFile(client, data, defaultPath + `\\${client.id}\\`);
         }
         else{
             console.log('Unknown command');
@@ -62,7 +73,8 @@ const server = net.createServer((client) => {
     });
 
     client.on('end', () => {
-        LogQA(pathToLog, `Client disconnected`)
+        if(clientsQueue.length > 0) Incoming['FILES'](clientsQueue.pop());
+        LogQA(client.pathToLog, `Client disconnected`)
     });
 });
 

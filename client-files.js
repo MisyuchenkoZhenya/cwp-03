@@ -54,6 +54,7 @@ function sendFileToServer(client){
         client.write(JSON.stringify(message));
     }
     else{
-        client.destroy();
+        //client.destroy();
+        client.write('DEC');
     }
 }
