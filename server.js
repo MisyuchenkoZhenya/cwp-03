@@ -1,10 +1,13 @@
 const net = require('net');
 const fs = require('fs');
+const fs_extra = require("fs-extra");
 const path = require('path');
 const uid = require('uid');
 const logOut = require('./helpers/path_creater');
 const sh = require('./helpers/server_helper');
 const port = 8124;
+const defaultPath = process.env.DEFAULT_PATH = fs.realpathSync('') + '\\clientFiles\\';
+const IP = '127.0.0.1';
 
 let qa = readJson();
 
@@ -19,6 +22,7 @@ const Incoming = {
     },
 
     'FILES': (client, pathToLog) => {
+        sh.checkFileDirectory(defaultPath);
         client.current_state = modes['FILES'];
         client.write('ACK');
     },
@@ -49,7 +53,7 @@ const server = net.createServer((client) => {
             sendAnswer(pathToLog, client, data, qa);
         }
         else if(client.current_state === modes['FILES']){
-            
+            sh.createNewFile(client, data, defaultPath);
         }
         else{
             console.log('Unknown command');
@@ -62,15 +66,17 @@ const server = net.createServer((client) => {
     });
 });
 
-server.listen({host: '127.0.0.1', port: port, exclusive: true},  () => {
-    console.log(`Server listening on localhost:${port}`);
+server.listen({host: IP, port: port, exclusive: true},  () => {
+    console.log(`Server listening on localhost: ${port}`);
 });
 
 function LogQA(pathToLog, message) {
     date = new Date();
     if (fs.existsSync(pathToLog)){
-        fs.appendFile(pathToLog, date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds() +
-                            ' - ' + message + '\n', (err) => {
+        fs.appendFile(pathToLog, 
+                      date.getHours() + ':' + date.getMinutes() + ':' + 
+                      date.getSeconds() + ' - ' + message + '\n', 
+                      (err) => {
             if(err){
                 console.err(err.toString());
             }

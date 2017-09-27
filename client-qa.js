@@ -2,6 +2,7 @@ const net = require('net');
 const fs = require('fs');
 const sh = require('./helpers/shuffle_alg');
 const port = 8124;
+const IP = '127.0.0.1';
 
 let qa = readJson();
 const client = new net.Socket();
@@ -18,7 +19,7 @@ const Incoming = {
     },
 };
 
-client.connect({host: '127.0.0.1', port: port}, () => {
+client.connect({host: IP, port: port}, () => {
     client.write('QA');
 });
 

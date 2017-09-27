@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const cf_h = require('./helpers/client-files_helper');
 const port = 8124;
+const IP = '127.0.0.1';
 
 const client = new net.Socket();
 let dirs, files = [];
@@ -16,7 +17,7 @@ const Incoming = {
     },
 
     'NEXT': () => {
-        sendFileToServer();
+        sendFileToServer(client);
     },
 
     'DEC': () => {
@@ -24,7 +25,7 @@ const Incoming = {
     },
 };
 
-client.connect({host: '127.0.0.1', port: port}, () => {
+client.connect({host: IP, port: port}, () => {
     client.write('FILES');
 });
 
@@ -33,7 +34,8 @@ client.on('data', (data) => {
         Incoming[data]();
     }
     else{
-        
+        console.log('Unknown command');
+        client.write('DEC');
     }
 });
 
@@ -43,13 +45,16 @@ client.on('close', () => {
 
 function createDialog(client, dirs) {
     files = cf_h.readFilePaths(dirs);
-    sendFileToServer();
-    console.log(files);
-    client.write('DEC');
+    sendFileToServer(client);
 }
 
-function sendFileToServer(){
-    if(files.length !== 0){
-
+function sendFileToServer(client){
+    if(files.length > 0){
+        const message = cf_h.createMessage(files.pop());
+        client.write(JSON.stringify(message));
+    }
+    else{
+        //client.write('DEC');
+        client.destroy();
     }
 }

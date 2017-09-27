@@ -46,6 +46,14 @@ function getDirectoryPaths(directory, files){
     });
 }
 
+function createMessage(path){
+    const content = fs.readFileSync(path);
+    const temp_list = path.split('\\');
+    const filename = temp_list[temp_list.length - 1];
+    return {'filename' : filename, 'content': content};
+}
+
 module.exports.getDirsFromArgv = getDirsFromArgv;
 module.exports.checkDirsCorrect = checkDirsCorrect;
 module.exports.readFilePaths = readFilePaths;
+module.exports.createMessage = createMessage;
